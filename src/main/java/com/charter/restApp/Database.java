@@ -1,6 +1,5 @@
 package com.charter.restApp;
 
-import org.mariadb.jdbc.*;
 import org.mariadb.jdbc.Connection;
 
 import java.sql.*;
@@ -12,7 +11,7 @@ import java.util.Properties;
 public class Database {
 
     private static Database instance;
-    private org.mariadb.jdbc.Connection connection;
+    private Connection connection;
 
     private final String hostname;
     private final String port;
@@ -63,6 +62,10 @@ public class Database {
             Database.instance = new Database();
         }
         return Database.instance;
+    }
+
+    public Connection getConnection() {
+        return this.connection;
     }
 
     public void connect() throws SQLException, ClassNotFoundException {
