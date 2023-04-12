@@ -1,5 +1,7 @@
 package com.charter.restApp;
 
+import org.json.JSONObject;
+import org.springframework.javapoet.ClassName;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
@@ -20,6 +22,66 @@ public class RestAppController {
     @RequestMapping("/")
     public String hello() {
         return "cat README.md";
+    }
+
+    @GetMapping("/getPoints")
+    @ResponseBody
+    public String getPoints(@RequestParam Map<String, String> params) {
+        String email = params.get("email");
+
+        if(email == null) {
+            RestAppController.logger.log(Level.WARNING, "Incorrect email: null");
+            return("ERROR: cannot get points");
+        }
+
+        Pattern pattern = Pattern.compile("^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$");
+        if(pattern.matcher(email).find() == false) {
+            RestAppController.logger.log(Level.WARNING, "Incorrect email: >>" +email+ "<<");
+            return("ERROR: incorrect email");
+        }
+
+        Customer customer = null;
+
+        try {
+            customer = DatabaseController.getInstance().getCustomer(email);
+        } catch(SQLException ex) {
+            RestAppController.logger.log(Level.WARNING, "DATABASE ERROR");
+            RestAppController.logger.log(Level.WARNING, ex.toString());
+            return("ERROR: cannot get points");
+        } catch(ClassNotFoundException ex) {
+            RestAppController.logger.log(Level.WARNING, "CLASSNOTFOUND ERROR");
+            RestAppController.logger.log(Level.WARNING, ex.toString());
+            return("ERROR: cannot get points");
+        } catch(IOException ex) {
+            RestAppController.logger.log(Level.WARNING, "IOEXCEPTION ERROR");
+            RestAppController.logger.log(Level.WARNING, ex.toString());
+            return("ERROR: cannot get points");
+        }
+
+        if(customer == null) {
+            RestAppController.logger.log(Level.WARNING, "Customer not found >>" + email + "<<");
+            return ("ERROR: cannot get points");
+        }
+
+        JSONObject points = null;
+
+        try {
+            points = DatabaseController.getInstance().getPoints(customer);
+        } catch(SQLException ex) {
+            RestAppController.logger.log(Level.WARNING, "DATABASE ERROR");
+            RestAppController.logger.log(Level.WARNING, ex.toString());
+            return("ERROR: cannot get points");
+        } catch(ClassNotFoundException ex) {
+            RestAppController.logger.log(Level.WARNING, "CLASSNOTFOUND ERROR");
+            RestAppController.logger.log(Level.WARNING, ex.toString());
+            return("ERROR: cannot get points");
+        } catch(IOException ex) {
+            RestAppController.logger.log(Level.WARNING, "IOEXCEPTION ERROR");
+            RestAppController.logger.log(Level.WARNING, ex.toString());
+            return("ERROR: cannot get points");
+        }
+
+        return(points.toString());
     }
 
     @GetMapping("/addTransaction")
@@ -97,6 +159,7 @@ public class RestAppController {
         } catch(SQLException ex) {
             RestAppController.logger.log(Level.WARNING, "DATABASE ERROR");
             RestAppController.logger.log(Level.WARNING, ex.toString());
+            RestAppController.logger.log(Level.WARNING, ""+ex.getErrorCode());
             return("ERROR: cannot add transaction");
         } catch(IOException ex) {
             RestAppController.logger.log(Level.WARNING, "DATABASE ERROR");

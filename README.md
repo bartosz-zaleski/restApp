@@ -1,6 +1,7 @@
 
 #
 
+http://localhost:8080/addTransaction?firstname=Bartosz&surname=Zaleski&email=bartosz.zaleski@gmail.com&amount=200
 
 # Next steps
 
