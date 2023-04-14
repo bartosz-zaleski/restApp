@@ -1,5 +1,6 @@
 package com.charter.restApp;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.javapoet.ClassName;
 import org.springframework.web.bind.annotation.*;
@@ -63,7 +64,7 @@ public class RestAppController {
             return ("ERROR: cannot get points");
         }
 
-        JSONObject points = null;
+        JSONArray points = null;
 
         try {
             points = DatabaseController.getInstance().getPoints(customer);

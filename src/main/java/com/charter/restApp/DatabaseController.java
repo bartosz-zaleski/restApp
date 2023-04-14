@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class DatabaseController {
@@ -67,14 +69,34 @@ public class DatabaseController {
         }
     }
 
-    public JSONObject getPoints(Customer customer) throws SQLException {
-        PreparedStatement getPoints = DatabaseController.instance.db.getConnection().prepareStatement(
-                "SELECT firstname, surname, email, SUM(points_earned) FROM customers \n" +
-                "INNER JOIN (SELECT id_customer, points_earned FROM transactions WHERE date>CURDATE() - INTERVAL 30 DAY) AS transactions \n" +
-                "ON customers.id_customer=transactions.id_customer\n" +
-                "GROUP BY customers.id_customer ");
-        ResultSet res = getPoints.executeQuery();
+    public JSONArray getPoints(Customer customer) throws SQLException {
+        PreparedStatement query = DatabaseController.instance.db.getConnection().prepareStatement(
+                "SELECT firstname, surname, email, SUM(points_earned) AS points_earned FROM customers " +
+                    "INNER JOIN (SELECT id_customer, points_earned FROM transactions WHERE date>CURDATE() - INTERVAL 30 DAY) AS transactions " +
+                    "ON customers.id_customer=transactions.id_customer " +
+                    "WHERE customers.firstname=? AND customers.surname=? AND customers.email=?" +
+                    "GROUP BY customers.id_customer "
+        );
 
+        query.setString(1, customer.getFirstname());
+        query.setString(2, customer.getSurname());
+        query.setString(3, customer.getEmail());
+
+        ResultSet res = query.executeQuery();
+        JSONArray customers = new JSONArray();
+        JSONObject row = null;
+
+        while (res.next()) {
+            row = new JSONObject();
+            row.put("firstname", res.getString("firstname"));
+            row.put("surname", res.getString("surname"));
+            row.put("email", res.getString("email"));
+            row.put("points_earned", res.getString("points_earned"));
+            customers.put(row);
+            row = null;
+        }
+
+        return(customers);
     }
 
     public void addTransaction(Customer customer, Transaction transaction) throws SQLException {
